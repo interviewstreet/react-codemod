@@ -97,7 +97,7 @@ module.exports = function(file, api, options) {
   }
 
   // If any PropTypes references exist, add a 'prop-types' import (or require)
-  function addPropTypesImport(j, root) {
+  function addPropTypesImport(j, root, importDeclarationPath) {
     if (useImportSyntax(j, root)) {
       // Handle cases where 'prop-types' already exists;
       // eg the file has already been codemodded but more React.PropTypes were added.
@@ -105,12 +105,19 @@ module.exports = function(file, api, options) {
         return;
       }
 
+      const importStatement = j.importDeclaration(
+        [j.importDefaultSpecifier(j.identifier(localPropTypesName))],
+        j.literal(MODULE_NAME)
+      );
+
+      if (importDeclarationPath) {
+        j(importDeclarationPath).insertAfter(importStatement);
+        return;
+      }
+
       const path = findImportAfterPropTypes(j, root);
       if (path) {
-        const importStatement = j.importDeclaration(
-          [j.importDefaultSpecifier(j.identifier(localPropTypesName))],
-          j.literal(MODULE_NAME)
-        );
+
 
         // If there is a leading comment, retain it
         // https://github.com/facebook/jscodeshift/blob/master/recipes/retain-first-comment.md
@@ -215,6 +222,7 @@ module.exports = function(file, api, options) {
   // Remove old { PropTypes } imports
   function removePropTypesImport(j, root) {
     let hasModifications = false;
+    let importDeclarationPath;
 
     root
       .find(j.Identifier)
@@ -226,6 +234,7 @@ module.exports = function(file, api, options) {
         hasModifications = true;
         localPropTypesName = path.parent.node.local.name;
 
+        importDeclarationPath = path.parent.parent;
         const importDeclaration = path.parent.parent.node;
         importDeclaration.specifiers = importDeclaration.specifiers.filter(
           specifier => (
@@ -235,7 +244,7 @@ module.exports = function(file, api, options) {
         );
       });
 
-    return hasModifications;
+    return {hasModifications, importDeclarationPath};
   }
 
   // Replace all React.PropTypes instances with PropTypes
@@ -280,12 +289,13 @@ module.exports = function(file, api, options) {
   }
 
   let hasModifications = false;
-  hasModifications = removePropTypesImport(j, root) || hasModifications;
+  const {importDeclarationPath, hasModifications: flag} = removePropTypesImport(j, root);
+  hasModifications = flag || hasModifications;
   hasModifications = replacePropTypesReferences(j, root) || hasModifications;
   hasModifications = removeDestructuredPropTypeStatements(j, root) || hasModifications;
 
   if (hasModifications) {
-    addPropTypesImport(j, root);
+    addPropTypesImport(j, root, importDeclarationPath);
     removeEmptyReactImport(j, root);
   }
 
