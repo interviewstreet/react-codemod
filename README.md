@@ -7,7 +7,7 @@ APIs.
 ### Setup & Run
 
 1. `yarn global add jscodeshift`
-1. `git clone https://github.com/reactjs/react-codemod.git` or download a zip file from `https://github.com/reactjs/react-codemod/archive/master.zip`
+1. `git clone https://github.com/interviewstreet/react-codemod.git` or download a zip file from `https://github.com/interviewstreet/react-codemod/archive/master.zip`
 1. Run `yarn install` in the react-codemod directory
 1. `jscodeshift -t <codemod-script> <path>`
    * `codemod-script` - path to the transform file, see available scripts below;
