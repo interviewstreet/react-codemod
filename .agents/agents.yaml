@@ -1,0 +1,26 @@
+repo:
+  name: react-codemod
+  description: React codemod scripts
+  owner: reactjs
+
+prerequisites:
+  - name: GitHub CLI
+  - name: npm
+  - name: node
+    version: '>=12.0.0'
+
+setup:
+  - npm install
+
+dev:
+  command: npm test
+  port: null
+
+build:
+  command: npm run prepublish
+
+test:
+  command: npm test
+
+lint:
+  command: npm run lint
